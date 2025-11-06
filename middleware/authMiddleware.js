@@ -2,12 +2,22 @@ const JWT = require("jsonwebtoken");
 
 module.exports = async (req, res, next) => {
   try {
-    const token = req.headers["authorization"].split(" ")[1];
+    const authHeader = req.headers["authorization"];
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).send({
+        success: false,
+        message: "Authorization token missing or invalid format",
+      });
+    }
+
+    const token = authHeader.split(" ")[1];
+
     JWT.verify(token, process.env.JWT_SECRET, (err, decode) => {
       if (err) {
         return res.status(401).send({
           success: false,
-          message: "Auth Failed While Decrpytion",
+          message: "Auth Failed While Decryption",
         });
       } else {
         req.body.userId = decode.userId;
